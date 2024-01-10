@@ -4,10 +4,13 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -29,11 +32,11 @@ public class Avaliacao {
 	@NotNull(message = "o campo bandaId não pode estar vazio!")
 	private Long bandaId;
 	
-//	@ManyToOne
-//	@JsonIgnoreProperties("avaliacoes")
-//	private Usuario usuario;
+	@ManyToOne
+	@JsonIgnoreProperties("avaliacoes")
+	private Usuario usuario;
 
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -64,6 +67,14 @@ public class Avaliacao {
 
 	public void setBandaId(Long bandaId) {
 		this.bandaId = bandaId;
+	}
+	
+	public Usuario getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}
 	
 
