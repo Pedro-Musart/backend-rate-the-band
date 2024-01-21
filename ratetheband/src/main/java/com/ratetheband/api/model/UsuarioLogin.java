@@ -25,11 +25,11 @@ public class UsuarioLogin {
 		this.nome = nome;
 	}
 
-	public String getUsuario() {
+	public String getEmail() {
 		return this.email;
 	}
 
-	public void setUsuario(String usuario) {
+	public void setEmail(String usuario) {
 		this.email = usuario;
 	}
 

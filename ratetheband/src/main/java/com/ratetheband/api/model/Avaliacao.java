@@ -12,8 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table (name= "tb_avaliacoes")
@@ -24,7 +27,12 @@ public class Avaliacao {
 	private Long id;
 	
 	@PositiveOrZero(message = "O valor nota precisa ser igual ou maior que zero")
+	@Min(value = 1, message = "O valor mínimo permitido para uma avaliação é 1")
+	@Max(value = 5, message = "O valor máximo permitido para uma avaliação é 5")
 	private Long nota = 0L;
+	
+	@Size(max = 3000, message = "O atributo descrição deve conter no máximo 3000 caracteres")
+	private String descricao;
 	
 	@UpdateTimestamp
 	private LocalDateTime createdDate;
@@ -75,6 +83,14 @@ public class Avaliacao {
 
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
+	}
+
+	public String getDescricao() {
+		return descricao;
+	}
+
+	public void setDescricao(String descricao) {
+		this.descricao = descricao;
 	}
 	
 

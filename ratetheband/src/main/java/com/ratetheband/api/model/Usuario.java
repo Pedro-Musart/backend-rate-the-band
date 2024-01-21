@@ -46,9 +46,6 @@ public class Usuario {
 	@JsonIgnoreProperties("usuario")
 	private List<Avaliacao> avaliacoes;
 	
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.REMOVE)
-	@JsonIgnoreProperties("usuario")
-	private List<Comentario> comentarios;
 
 	public Long getId() {
 		return id;
@@ -106,13 +103,7 @@ public class Usuario {
 		this.avaliacoes = avaliacoes;
 	}
 
-	public List<Comentario> getComentarios() {
-		return comentarios;
-	}
 
-	public void setComentarios(List<Comentario> comentarios) {
-		this.comentarios = comentarios;
-	}
 
 	
 	
