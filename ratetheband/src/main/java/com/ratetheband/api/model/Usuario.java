@@ -26,17 +26,22 @@ public class Usuario {
 	private Long id;
 
 	@NotNull(message = "O Atributo Nome é Obrigatório!")
+	@Size(min = 1, max = 75, message = "O usuario.nome deve ter no minimo 1 e no máximo 75 caracteres")
 	private String nome;
+	
+	@NotNull(message = "O Atributo Usuário é Obrigatório!")
+	@Size(min = 1, max = 20, message = "O usuario.usuário deve ter no minimo 1 e no máximo 75 caracteres")
+	private String username;
 
 	@NotNull(message = "O Atributo email é Obrigatório!")
-	@Email(message = "O Atributo email deve ser um email válido!")
+	@Email(message = "O Atributo usuario.email deve ser um email válido!")
 	private String email;
 
 	@NotBlank(message = "O Atributo Senha é Obrigatório!")
-	@Size(min = 8, message = "A Senha deve ter no mínimo 8 caracteres")
+	@Size(min = 8, message = "A usuario.senha deve ter no mínimo 8 caracteres")
 	private String senha;
 
-	@Size(max = 5000, message = "O link da foto não pode ser maior do que 5000 caracteres")
+	@Size(max = 5000, message = "O usuario.foto não pode ser maior do que 5000 caracteres")
 	private String foto;
 
 	@UpdateTimestamp
@@ -53,6 +58,14 @@ public class Usuario {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+	
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = ("@" + username);
 	}
 
 	public String getNome() {

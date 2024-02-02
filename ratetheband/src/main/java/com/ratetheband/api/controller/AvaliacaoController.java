@@ -21,8 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.ratetheband.api.model.Avaliacao;
 import com.ratetheband.api.repository.AvaliacaoRepository;
-import com.ratetheband.api.repository.UsuarioRepository;
-import com.ratetheband.api.security.JwtService;
 import com.ratetheband.api.service.AvaliacaoService;
 
 import jakarta.validation.Valid;
@@ -35,14 +33,10 @@ public class AvaliacaoController {
 	@Autowired
 	private AvaliacaoRepository avaliacaoRepository;
 
-	@Autowired
-	private UsuarioRepository usuarioRepository;
 	
 	@Autowired
 	private AvaliacaoService avaliacaoService;
-	
-	@Autowired
-    private JwtService jwtService;
+
 	
 	@GetMapping("/all")
 	public ResponseEntity<List<Avaliacao>> getAll() {
@@ -56,14 +50,10 @@ public class AvaliacaoController {
 				.orElse(ResponseEntity.status(404).build());
 	}
 	
-	@GetMapping("/banda/{id}")
-	public ResponseEntity<List<Avaliacao>> getByBandaId(@PathVariable Long id){
-		return ResponseEntity.ok(avaliacaoRepository.findAllByBandaId(id));
-	}
 	
 	@GetMapping("/banda/{id}/usuario/{userId}")
 	public ResponseEntity<List<Avaliacao>> getByBandaIdAndUsuarioId(@PathVariable Long id, @PathVariable Long userId){
-		return ResponseEntity.ok(avaliacaoRepository.findByBandaIdAndUsuarioId(id, userId));
+		return ResponseEntity.ok(avaliacaoRepository.findAllByUsuarioIdAndBandaId(id, userId));
 	}
 	
 	@GetMapping("/banda/{id}/media")
@@ -77,17 +67,13 @@ public class AvaliacaoController {
 	        avaliacaoService.cadastrarAvaliacao(avaliacao, token);
 	        return ResponseEntity.status(HttpStatus.CREATED).body(avaliacao);
 	    } catch (IllegalArgumentException e) {
-	        // Permissão inválida
 	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
 	    } catch (ResponseStatusException e) {
 	        if (HttpStatus.BAD_REQUEST.equals(e.getStatusCode())) {
-	            // Outros erros, como usuário inválido
 	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 	        } else if (HttpStatus.CONFLICT.equals(e.getStatusCode())) {
-	            // Tratamento específico para o conflito
 	            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
 	        } else {
-	            // Tratamento padrão para outros status
 	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao processar a avaliação");
 	        }
 	    }
@@ -98,24 +84,20 @@ public class AvaliacaoController {
 	
 	@PutMapping
 	public ResponseEntity<Object> put(@Valid @RequestBody Avaliacao avaliacao, @RequestHeader("Authorization") String token) {
-	    if (avaliacaoRepository.existsById(avaliacao.getId())) {
 	        try {
 	            avaliacaoService.atualizarAvaliacao(avaliacao, token);
 	            return ResponseEntity.status(HttpStatus.OK).body(avaliacao);
 	        } catch (IllegalArgumentException e) {
-	            // Permissão inválida
 	            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
 	        } catch (ResponseStatusException e) {
 	            if (HttpStatus.BAD_REQUEST.equals(e.getStatusCode())) {
-	                // Outros erros, como usuário inválido
 	                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+	            } else if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+	            	return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 	            } else {
-	                // Tratamento padrão para outros status
-	                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao processar a atualização da avaliação");
+	            	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao processar a atualização da avaliação");
 	            }
 	        }
-	    }
-	    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Avaliação não encontrada!", null);
 	}
 
 	
@@ -123,7 +105,6 @@ public class AvaliacaoController {
 	@DeleteMapping("/{id}")
 	public void delete(@PathVariable Long id) {
 		Optional<Avaliacao> avaliacao = avaliacaoRepository.findById(id);
-		
 		if(avaliacao.isEmpty())
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		

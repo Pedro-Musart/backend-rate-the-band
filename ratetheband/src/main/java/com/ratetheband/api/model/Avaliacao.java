@@ -14,7 +14,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
@@ -37,11 +36,12 @@ public class Avaliacao {
 	@UpdateTimestamp
 	private LocalDateTime createdDate;
 	
-	@NotNull(message = "o campo bandaId não pode estar vazio!")
-	private Long bandaId;
-	
 	@ManyToOne
 	@JsonIgnoreProperties("avaliacoes")
+	private Banda banda;
+	
+	@ManyToOne
+	@JsonIgnoreProperties({"avaliacoes", "senha", "email"})
 	private Usuario usuario;
 
 
@@ -68,15 +68,15 @@ public class Avaliacao {
 	public void setCreatedDate(LocalDateTime createdDate) {
 		this.createdDate = createdDate;
 	}
-
-	public Long getBandaId() {
-		return bandaId;
-	}
-
-	public void setBandaId(Long bandaId) {
-		this.bandaId = bandaId;
-	}
 	
+	public Banda getBanda() {
+		return banda;
+	}
+
+	public void setBanda(Banda banda) {
+		this.banda = banda;
+	}
+
 	public Usuario getUsuario() {
 		return usuario;
 	}

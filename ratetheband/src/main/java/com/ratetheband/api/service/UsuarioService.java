@@ -1,6 +1,8 @@
 package com.ratetheband.api.service;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ratetheband.api.model.Usuario;
+import com.ratetheband.api.model.UsuarioDTO;
 import com.ratetheband.api.model.UsuarioLogin;
 import com.ratetheband.api.repository.UsuarioRepository;
 import com.ratetheband.api.security.JwtService;
@@ -28,6 +31,67 @@ public class UsuarioService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    
+    
+    
+    public List<UsuarioDTO> buscarTodosUsuarios() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<UsuarioDTO> usuariosDTO = new ArrayList<>();
+
+        for (Usuario usuario : usuarios) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO(
+                    usuario.getId(),
+                    usuario.getNome(),
+                    usuario.getUsername(),
+                    usuario.getFoto(),
+                    usuario.getCreatedDate()
+            );
+            usuariosDTO.add(usuarioDTO);
+        }
+
+        return usuariosDTO;
+    }
+
+    
+    public Optional<UsuarioDTO> buscarUsuario(Long id) {
+        Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
+
+        if (usuarioOptional.isPresent()) {
+            Usuario usuario = usuarioOptional.get();
+
+            UsuarioDTO usuarioDTO = new UsuarioDTO(
+                    usuario.getId(),
+                    usuario.getNome(),
+                    usuario.getUsername(),
+                    usuario.getFoto(),
+                    usuario.getCreatedDate(),
+                    usuario.getAvaliacoes()
+            );
+
+            return Optional.of(usuarioDTO);
+        } else {
+            return Optional.empty();
+        }
+    }
+    
+    public List<UsuarioDTO> buscarUsuariosPorNome(String nome) {
+        List<Usuario> usuarios = usuarioRepository.findAllByNomeContainingIgnoreCase(nome);
+        List<UsuarioDTO> usuariosDTO = new ArrayList<>();
+
+        for (Usuario usuario : usuarios) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO(
+                    usuario.getId(),
+                    usuario.getNome(),
+                    usuario.getUsername(),
+                    usuario.getFoto(),
+                    usuario.getCreatedDate()
+            );
+            usuariosDTO.add(usuarioDTO);
+        }
+
+        return usuariosDTO;
+    }
+
 
 	public Optional<Usuario> cadastrarUsuario(Usuario usuario) {
 
@@ -35,27 +99,39 @@ public class UsuarioService {
 			return Optional.empty();
 
 		usuario.setSenha(criptografarSenha(usuario.getSenha()));
-
+		
+		
 		return Optional.of(usuarioRepository.save(usuario));
 	
 	}
-
-	public Optional<Usuario> atualizarUsuario(Usuario usuario) {
+	
+	public Boolean tokenUserIdEqualsUserId(Usuario usuario, String token){
+		token = token.substring(7);
+		Long tokenUserId = jwtService.extractUserId(token);
 		
-		if(usuarioRepository.findById(usuario.getId()).isPresent()) {
+		return usuario.getId().equals(tokenUserId);
+	}
 
-			Optional<Usuario> buscaUsuario = usuarioRepository.findByEmail(usuario.getEmail());
+	public Usuario atualizarUsuario(Usuario usuario,  String token) {
 
-			if ( (buscaUsuario.isPresent()) && ( buscaUsuario.get().getId() != usuario.getId()))
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário já existe!", null);
+		
+		if(!usuarioRepository.findById(usuario.getId()).isPresent()) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario não encontrado!", null);
+		}
+		if(!tokenUserIdEqualsUserId(usuario,token)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissão inválida: não é possível atualizar outro usuário");
+		}
+	
+		Optional<Usuario> buscaEmail = usuarioRepository.findByEmail(usuario.getEmail());
 
-			usuario.setSenha(criptografarSenha(usuario.getSenha()));
-
-			return Optional.ofNullable(usuarioRepository.save(usuario));
-			
+		if ( (buscaEmail.isPresent()) && ( buscaEmail.get().getId() != usuario.getId())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já existe!", null);
 		}
 
-		return Optional.empty();
+		usuario.setSenha(criptografarSenha(usuario.getSenha()));
+
+		return (usuarioRepository.save(usuario));
+		
 	
 	}	
 
@@ -78,8 +154,9 @@ public class UsuarioService {
 			if (usuario.isPresent()) {
 
                 // Preenche o Objeto usuarioLogin com os dados encontrados 
-			   usuarioLogin.get().setId(usuario.get().getId());
+				usuarioLogin.get().setId(usuario.get().getId());
                 usuarioLogin.get().setNome(usuario.get().getNome());
+                usuarioLogin.get().setUsername(usuario.get().getUsername());
                 usuarioLogin.get().setFoto(usuario.get().getFoto());
                 usuarioLogin.get().setToken(gerarToken(usuarioLogin.get().getEmail(), usuarioLogin.get().getId()));
                 usuarioLogin.get().setSenha("");
